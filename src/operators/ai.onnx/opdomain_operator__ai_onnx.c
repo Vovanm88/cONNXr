@@ -21,6 +21,27 @@ extern operator_set_opname opname_operator__ai_onnx__batchnormalization;
 extern operator_set_opname opname_operator__ai_onnx__sigmoid;
 extern operator_set_opname opname_operator__ai_onnx__softmax;
 extern operator_set_opname opname_operator__ai_onnx__convtranspose;
+extern operator_set_opname opname_operator__ai_onnx__cos;
+extern operator_set_opname opname_operator__ai_onnx__sin;
+extern operator_set_opname opname_operator__ai_onnx__sqrt;
+extern operator_set_opname opname_operator__ai_onnx__neg;
+extern operator_set_opname opname_operator__ai_onnx__isnan;
+extern operator_set_opname opname_operator__ai_onnx__div;
+extern operator_set_opname opname_operator__ai_onnx__pow;
+extern operator_set_opname opname_operator__ai_onnx__equal;
+extern operator_set_opname opname_operator__ai_onnx__lessorequal;
+extern operator_set_opname opname_operator__ai_onnx__where;
+extern operator_set_opname opname_operator__ai_onnx__shape;
+extern operator_set_opname opname_operator__ai_onnx__flatten;
+extern operator_set_opname opname_operator__ai_onnx__unsqueeze;
+extern operator_set_opname opname_operator__ai_onnx__expand;
+extern operator_set_opname opname_operator__ai_onnx__cast;
+extern operator_set_opname opname_operator__ai_onnx__concat;
+extern operator_set_opname opname_operator__ai_onnx__gather;
+extern operator_set_opname opname_operator__ai_onnx__slice;
+extern operator_set_opname opname_operator__ai_onnx__constantofshape;
+extern operator_set_opname opname_operator__ai_onnx__range;
+extern operator_set_opname opname_operator__ai_onnx__reducemean;
 
 operator_set_opdomain opdomain_operator__ai_onnx = {
     .name = "ai.onnx",
@@ -44,6 +65,27 @@ operator_set_opdomain opdomain_operator__ai_onnx = {
         &opname_operator__ai_onnx__sigmoid,
         &opname_operator__ai_onnx__softmax,
         &opname_operator__ai_onnx__convtranspose,
+        &opname_operator__ai_onnx__cos,
+        &opname_operator__ai_onnx__sin,
+        &opname_operator__ai_onnx__sqrt,
+        &opname_operator__ai_onnx__neg,
+        &opname_operator__ai_onnx__isnan,
+        &opname_operator__ai_onnx__div,
+        &opname_operator__ai_onnx__pow,
+        &opname_operator__ai_onnx__equal,
+        &opname_operator__ai_onnx__lessorequal,
+        &opname_operator__ai_onnx__where,
+        &opname_operator__ai_onnx__shape,
+        &opname_operator__ai_onnx__flatten,
+        &opname_operator__ai_onnx__unsqueeze,
+        &opname_operator__ai_onnx__expand,
+        &opname_operator__ai_onnx__cast,
+        &opname_operator__ai_onnx__concat,
+        &opname_operator__ai_onnx__gather,
+        &opname_operator__ai_onnx__slice,
+        &opname_operator__ai_onnx__constantofshape,
+        &opname_operator__ai_onnx__range,
+        &opname_operator__ai_onnx__reducemean,
         NULL
     }
 };

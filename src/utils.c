@@ -249,7 +249,13 @@ int convertRawDataOfTensorProto(Onnx__TensorProto *tensor)
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT16:
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT32:
-      break;
+    {
+      tensor->n_int32_data = tensor->raw_data.len / sizeof(int32_t);
+      tensor->int32_data = malloc(tensor->n_int32_data * sizeof(int32_t));
+      for (int i = 0; i < tensor->raw_data.len; i += sizeof(int32_t)) {
+        tensor->int32_data[i / sizeof(int32_t)] = *(int32_t *)&tensor->raw_data.data[i];
+      }
+    } break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT64:
     {
       tensor->n_int64_data = tensor->raw_data.len/sizeof(int64_t);
@@ -263,10 +269,20 @@ int convertRawDataOfTensorProto(Onnx__TensorProto *tensor)
     case ONNX__TENSOR_PROTO__DATA_TYPE__STRING:
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__BOOL:
+      tensor->n_int32_data = tensor->raw_data.len / sizeof(uint8_t);
+      tensor->int32_data = malloc(tensor->n_int32_data * sizeof(int32_t));
+      for (int i = 0; i < tensor->raw_data.len; i += sizeof(uint8_t)) {
+        tensor->int32_data[i] = *(uint8_t *)&tensor->raw_data.data[i] ? 1 : 0;
+      }
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT16:
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__DOUBLE:
+      tensor->n_double_data = tensor->raw_data.len / sizeof(double);
+      tensor->double_data = malloc(tensor->n_double_data * sizeof(double));
+      for (int i = 0; i < tensor->raw_data.len; i += sizeof(double)) {
+        tensor->double_data[i / sizeof(double)] = *(double *)&tensor->raw_data.data[i];
+      }
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__UINT32:
       break;

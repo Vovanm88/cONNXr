@@ -2,5 +2,5 @@
 #include "tracing.h"
 #include "utils.h"
 operator_status execute_operator__ai_onnx__gather__1__T_tensor_int32(node_context *ctx) {
-    return OP_ENOSYS;
+    return execute_operator__ai_onnx__gather__1__T_tensor_float(ctx);
 }

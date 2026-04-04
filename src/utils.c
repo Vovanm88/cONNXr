@@ -13,12 +13,13 @@ Onnx__TensorProto* searchTensorProtoByName(Onnx__ModelProto *model,
                                            char *name)
 {
   TRACE_ENTRY(1);
+  if (!name || !name[0]) { TRACE_EXIT(1); return NULL; }
   TRACE(1, true, "Searching for TensorProto with name=%s", name);
 
   // Search in initializers
   for (int initializer = 0; initializer < model->graph->n_initializer; initializer++)
   {
-    if (!strcmp(model->graph->initializer[initializer]->name, name))
+    if (model->graph->initializer[initializer]->name && !strcmp(model->graph->initializer[initializer]->name, name))
     {
       TRACE(1, true, "Found TensorProto in initializer list with name=%s", model->graph->initializer[initializer]->name);
       TRACE_EXIT(1);
@@ -44,6 +45,7 @@ Onnx__TensorProto* searchTensorProtoByName(Onnx__ModelProto *model,
     for (int node_i = 0; node_i < _populatedIdx+1; node_i++)
     {
       for (int output_i = 0; output_i < all_context[node_i].onnx_node->n_output; output_i++){
+        if (!all_context[node_i].outputs[output_i] || !all_context[node_i].outputs[output_i]->name) continue;
         TRACE(1, true, "Searching %s, found %s", name, all_context[node_i].outputs[output_i]->name);
         if (!strcmp(all_context[node_i].outputs[output_i]->name, name))
         {
@@ -603,8 +605,8 @@ mallocTensorData(Onnx__TensorProto *dst) {
       TRACE_FATAL(0, true, "no case for datatype %d", dst->data_type);
       return NULL;
   }
-  size_t num = dst->dims[0];
-  for (int i = 1; i < dst->n_dims; i++) {
+  size_t num = 1;
+  for (int i = 0; i < dst->n_dims; i++) {
     num *= dst->dims[i];
   }
   *n_data = (num*size_element+size_container-1)/size_container;

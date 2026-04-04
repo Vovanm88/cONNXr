@@ -63,6 +63,34 @@ CC=gcc
 CFLAGS+=-std=c99
 CFLAGS+=-Wall
 CFLAGS+=-g3 -gdwarf -O2
+
+VARIABLE+=CONNXR_SIMD
+HELP_CONNXR_SIMD=SIMD level: none, sse4, avx2 (default: none)
+CONNXR_SIMD?=none
+
+VARIABLE+=CONNXR_OMP
+HELP_CONNXR_OMP=OpenMP: 0 or 1 (default: 0)
+CONNXR_OMP?=0
+
+VARIABLE+=CONNXR_BLAS
+HELP_CONNXR_BLAS=Use BLAS: 0 or 1 (default: 0)
+CONNXR_BLAS?=0
+
+ifeq ($(CONNXR_SIMD),avx2)
+  CFLAGS+=-mavx2 -mfma -DCONNXR_USE_AVX2
+else ifeq ($(CONNXR_SIMD),sse4)
+  CFLAGS+=-msse4.1 -DCONNXR_USE_SSE4
+endif
+
+ifeq ($(CONNXR_OMP),1)
+  CFLAGS+=-fopenmp -DCONNXR_USE_OMP
+  LDLIBS+=-lgomp
+endif
+
+ifeq ($(CONNXR_BLAS),1)
+  CFLAGS+=-DCONNXR_USE_BLAS
+  LDLIBS+=-lblas
+endif
 # CFLAGS+=-Werror # CI jobs run with flag enabled
 ifdef TRACE_LEVEL
 CPPFLAGS+=-D "TRACE_LEVEL=$(TRACE_LEVEL)"
@@ -142,6 +170,15 @@ HELP_benchmark=run benchmarks of all MODELS
 TARGET+=benchmark
 benchmark: sharedlib
 	python tests/benchmarking.py
+
+.phony:benchmark_matmul
+HELP_benchmark_matmul=benchmark MatMul operator (naive vs optimized)
+TARGET+=benchmark_matmul
+benchmark_matmul: $(BUILDDIR)/benchmark_matmul
+$(BUILDDIR)/benchmark_matmul: tests/benchmark_matmul.c $(wildcard src/operators/ai.onnx/MatMul/9/matmul_kernel.c)
+	@mkdir -p $(dir $@)
+	$(CC) -o $@ tests/benchmark_matmul.c $(wildcard src/operators/ai.onnx/MatMul/9/matmul_kernel.c) $(CPPFLAGS) $(CFLAGS) -Isrc/operators/ai.onnx/MatMul/9 -lm -lrt
+	$(BUILDDIR)/benchmark_matmul
 
 .phony:connxr
 HELP_connxr=build connxr binary

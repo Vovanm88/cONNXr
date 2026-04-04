@@ -1,6 +1,7 @@
 #include "operator__ai_onnx__expand__1.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 #include "broadcast_utils.h"
 
 operator_status

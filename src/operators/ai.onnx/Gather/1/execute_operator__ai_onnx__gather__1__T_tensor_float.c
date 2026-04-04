@@ -4,6 +4,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "op_utils.h"
 
 #define GATHER_TYPED(TYPE, DATA_FIELD)                                       \
 do {                                                                          \
@@ -31,10 +32,14 @@ operator_status
 execute_operator__ai_onnx__gather__1__T_tensor_float(node_context *ctx)
 {
     Onnx__TensorProto *i_data = searchInputByName(ctx, 0);
+    if (!i_data || tensor_is_empty(i_data)) return OP_OK;
     Onnx__TensorProto *i_indices = searchInputByName(ctx, 1);
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
     if (!i_data || !i_indices || !o_output) return OP_EINVAL;
     if (!i_data->dims || i_data->n_dims == 0) return OP_EINVAL;
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_output)) return OP_OK;
 
     Onnx__AttributeProto *a_axis = searchAttributeNyName(
         ctx->onnx_node->n_attribute, ctx->onnx_node->attribute, "axis");

@@ -3,6 +3,7 @@
 #include "tracing.h"
 #include "utils.h"
 #include <float.h>
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__clip__12__T_tensor_float(
@@ -16,6 +17,7 @@ execute_operator__ai_onnx__clip__12__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_input = searchInputByName(ctx, 0);
+    if (!i_input || tensor_is_empty(i_input)) return OP_OK;
     Onnx__TensorProto *i_min = searchInputByName(ctx, 1);
     Onnx__TensorProto *i_max = searchInputByName(ctx, 2);
 
@@ -26,6 +28,9 @@ execute_operator__ai_onnx__clip__12__T_tensor_float(
     // context_operator__ai_onnx__clip__12 *op_ctx = ctx->executer_context;
 
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_output)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_output);
 

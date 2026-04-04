@@ -1,6 +1,7 @@
 #include "operator__ai_onnx__concat__1.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 #include <string.h>
 
 operator_status

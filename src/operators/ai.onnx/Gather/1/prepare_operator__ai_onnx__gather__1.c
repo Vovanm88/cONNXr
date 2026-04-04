@@ -1,6 +1,7 @@
 #include "operator__ai_onnx__gather__1.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 
 operator_status
 prepare_operator__ai_onnx__gather__1(node_context *ctx)

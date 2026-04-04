@@ -3,6 +3,7 @@
 #include "matmul_kernel.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__matmul__9__T_tensor_int64(
@@ -20,6 +21,9 @@ execute_operator__ai_onnx__matmul__9__T_tensor_int64(
     TRACE_TENSOR(2, true, i_B);
 
     Onnx__TensorProto *o_Y = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_Y)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_Y);
 

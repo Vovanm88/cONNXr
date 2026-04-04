@@ -30,6 +30,8 @@ execute_operator__ai_onnx__argmax__12__T_tensor_int64(
 
     // Onnx__TensorProto *o_reduced = searchOutputByName(ctx, 0);
 
+    /* Skip if output tensor is empty (has 0-dim) */
+
     // TRACE_TENSOR(2, true, o_reduced);
 
     /* DO CALCULATION HERE */

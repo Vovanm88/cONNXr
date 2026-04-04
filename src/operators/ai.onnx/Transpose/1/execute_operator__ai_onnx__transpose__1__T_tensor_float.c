@@ -3,6 +3,7 @@
 #include "tracing.h"
 #include "utils.h"
 #include "index.h"
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__transpose__1__T_tensor_float(
@@ -16,6 +17,7 @@ execute_operator__ai_onnx__transpose__1__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_data = searchInputByName(ctx, 0);
+    if (!i_data || tensor_is_empty(i_data)) return OP_OK;
 
     TRACE_TENSOR(2, true, i_data);
 
@@ -27,6 +29,9 @@ execute_operator__ai_onnx__transpose__1__T_tensor_float(
     TRACE_ARRAY(2, true, perm, , n_perm, "%" PRId64);
 
     Onnx__TensorProto *o_transposed = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_transposed)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_transposed);
 
@@ -45,6 +50,10 @@ execute_operator__ai_onnx__transpose__1__T_tensor_float(
         offset[i] = o_transposed->dims[i+1] * offset[i+1];
     }
 
+    if (!i_data->float_data || !o_transposed->float_data) {
+        TRACE_EXIT(1);
+        return OP_OK;
+    }
     for(int i = 0; i < o_transposed->n_float_data; i++) {
         for (int n = n_dims-1; n > 0 ; n--) {
             if ( index[n] < i_data->dims[n]) break;

@@ -2,6 +2,7 @@
 #include "operator__ai_onnx__and__7.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__and__7__T_tensor_float(
@@ -13,12 +14,16 @@ execute_operator__ai_onnx__and__7__T_tensor_float(
     TRACE_NODE(2, true, ctx->onnx_node);
 
     Onnx__TensorProto *i_A = searchInputByName(ctx, 0);
+    if (!i_A || tensor_is_empty(i_A)) return OP_OK;
     Onnx__TensorProto *i_B = searchInputByName(ctx, 1);
 
     TRACE_TENSOR(2, true, i_A);
     TRACE_TENSOR(2, true, i_B);
 
     Onnx__TensorProto *o_C = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_C)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_C);
 

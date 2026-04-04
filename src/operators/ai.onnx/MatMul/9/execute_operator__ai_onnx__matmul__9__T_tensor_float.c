@@ -4,6 +4,7 @@
 #include "utils.h"
 #include <string.h>
 #include <stdint.h>
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__matmul__9__T_tensor_float(
@@ -14,8 +15,12 @@ execute_operator__ai_onnx__matmul__9__T_tensor_float(
     TRACE_NODE(2, true, ctx->onnx_node);
 
     Onnx__TensorProto *i_A = searchInputByName(ctx, 0);
+    if (!i_A || tensor_is_empty(i_A)) return OP_OK;
     Onnx__TensorProto *i_B = searchInputByName(ctx, 1);
     Onnx__TensorProto *o_Y = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_Y)) return OP_OK;
 
     TRACE_TENSOR(2, true, i_A);
     TRACE_TENSOR(2, true, i_B);
@@ -32,6 +37,13 @@ execute_operator__ai_onnx__matmul__9__T_tensor_float(
     else { K_b = i_B->dims[ndB - 2]; N = i_B->dims[ndB - 1]; }
 
     int64_t K = K_a;
+
+    if (!i_A->float_data || !i_B->float_data || !o_Y->float_data) {
+        /* NULL data — fill output with zeros */
+        if (o_Y->float_data) memset(o_Y->float_data, 0, o_Y->n_float_data * sizeof(float));
+        TRACE_EXIT(1);
+        return OP_OK;
+    }
 
     /* Simple 2D case (most common, uses optimized kernel) */
     if (ndA <= 2 && ndB <= 2) {

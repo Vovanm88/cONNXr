@@ -3,6 +3,7 @@
 #include "tracing.h"
 #include "utils.h"
 #include "index.h"
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__conv__11__T_tensor_float(
@@ -16,6 +17,7 @@ execute_operator__ai_onnx__conv__11__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_X = searchInputByName(ctx, 0);
+    if (!i_X || tensor_is_empty(i_X)) return OP_OK;
     Onnx__TensorProto *i_W = searchInputByName(ctx, 1);
     Onnx__TensorProto *i_B = searchInputByName(ctx, 2);
 
@@ -57,6 +59,9 @@ execute_operator__ai_onnx__conv__11__T_tensor_float(
     TRACE_ARRAY(2, true, strides, , n_strides, "%" PRId64);
 
     Onnx__TensorProto *o_Y = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_Y)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_Y);
 

@@ -2,6 +2,7 @@
 #include "operator__ai_onnx__convtranspose__11.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 
 //transformes a 3d pos into a 1d flat array pos
 static inline int calcArrayPos3D(int x, int y, int outputChannel, int width, int height) {
@@ -28,6 +29,7 @@ execute_operator__ai_onnx__convtranspose__11__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_X = searchInputByName(ctx, 0);
+    if (!i_X || tensor_is_empty(i_X)) return OP_OK;
     Onnx__TensorProto *i_W = searchInputByName(ctx, 1);
     Onnx__TensorProto *i_B = searchInputByName(ctx, 2);
 
@@ -64,6 +66,9 @@ execute_operator__ai_onnx__convtranspose__11__T_tensor_float(
     TRACE_ARRAY(2, true, strides, , n_strides, "%" PRId64);
 
     Onnx__TensorProto *o_Y = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_Y)) return OP_OK;
 
     // TRACE_TENSOR(2, true, o_Y);
 

@@ -3,6 +3,7 @@
 #include "utils.h"
 #include "broadcast_utils.h"
 #include <stdint.h>
+#include "op_utils.h"
 
 #define EXPAND_TYPED(TYPE, FIELD, N_FIELD) \
     if (i_input->FIELD && o_output->FIELD) { \
@@ -16,7 +17,11 @@ operator_status
 execute_operator__ai_onnx__expand__1__T_tensor_float(node_context *ctx)
 {
     Onnx__TensorProto *i_input = searchInputByName(ctx, 0);
+    if (!i_input || tensor_is_empty(i_input)) return OP_OK;
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_output)) return OP_OK;
+
     broadcast_ctx bc;
     broadcast_init(&bc, i_input->n_dims, i_input->dims, o_output->n_dims, o_output->dims);
 

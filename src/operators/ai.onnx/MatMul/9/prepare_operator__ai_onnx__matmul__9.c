@@ -30,18 +30,30 @@ prepare_operator__ai_onnx__matmul__9(
 
     /* INITIALIZE OUTPUTS DATA_TYPE AND SHAPE HERE */
 
-    // TODO Hardcoded for 2 dimensions
-    // TODO Might be useful to define a macro like
-    // #define I(a,b,c,d) I[(a)+(b)*oH+(c)*oH*oW+(d)*oH*oW*C]
-    // dont know how to handle the different dimensions though
-    TRACE_FATAL(0, i_A->n_dims != 2 || i_B->n_dims != 2, "not supported dimensions");
+    // Support for arbitrary dimensions with broadcasting for batch dimensions
+    TRACE_FATAL(0, i_A->n_dims < 2 || i_B->n_dims < 2, "MatMul requires at least 2 dimensions");
+
+    int64_t n_dims_Y = (i_A->n_dims > i_B->n_dims) ? i_A->n_dims : i_B->n_dims;
+    int64_t a_inner = i_A->dims[i_A->n_dims - 1];
+    int64_t b_inner = i_B->dims[i_B->n_dims - 2];
+    TRACE_FATAL(0, a_inner != b_inner, "Inner dimensions must match for MatMul");
 
     o_Y->has_raw_data = 0;
-    o_Y->n_dims       = 2;
-    o_Y->dims         = malloc(o_Y->n_dims*sizeof(int64_t));
-    o_Y->dims[0]      = i_A->dims[0];
-    o_Y->dims[1]      = i_B->dims[1];
-    o_Y->data_type    = i_A->data_type;
+    o_Y->n_dims = n_dims_Y;
+    o_Y->dims = malloc(o_Y->n_dims * sizeof(int64_t));
+    o_Y->data_type = i_A->data_type;
+
+    // Compute broadcasted batch dimensions
+    for (int64_t i = 0; i < n_dims_Y - 2; ++i) {
+        int64_t a_dim = (i < i_A->n_dims - 2) ? i_A->dims[i] : 1;
+        int64_t b_dim = (i < i_B->n_dims - 2) ? i_B->dims[i] : 1;
+        TRACE_FATAL(0, (a_dim != b_dim) && (a_dim != 1) && (b_dim != 1), "Batch dimensions are not broadcastable");
+        o_Y->dims[i] = (a_dim > b_dim) ? a_dim : b_dim;
+    }
+
+    // Set the matrix dimensions
+    o_Y->dims[n_dims_Y - 2] = i_A->dims[i_A->n_dims - 2];
+    o_Y->dims[n_dims_Y - 1] = i_B->dims[i_B->n_dims - 1];
 
     /* MALLOC OUTPUT TENSORS HERE */
 

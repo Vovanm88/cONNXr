@@ -296,6 +296,7 @@ void Debug_PrintTensorProto(Onnx__TensorProto *tp)
 
 void debug_prettyprint_model(Onnx__ModelProto *model)
 {
+  printf("debug_prettyprint_model: start\n");
   TRACE_LEVEL0("");
   TRACE_LEVEL0("-----------------------------------------------\n");
   TRACE_LEVEL0("---------------Model information---------------\n");
@@ -354,6 +355,7 @@ void debug_prettyprint_model(Onnx__ModelProto *model)
           break;
         case ONNX__TENSOR_SHAPE_PROTO__DIMENSION__VALUE_DIM_VALUE:
           TRACE_LEVEL0("%lld x ", model->graph->input[i]->type->tensor_type->shape->dim[j]->dim_value);
+  printf("debug_prettyprint_model: end\n");
           break;
         case ONNX__TENSOR_SHAPE_PROTO__DIMENSION__VALUE_DIM_PARAM:
           TRACE_LEVEL0("TODO %s\n", model->graph->input[i]->type->tensor_type->shape->dim[j]->dim_param);

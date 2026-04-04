@@ -22,55 +22,35 @@ void resolve(Onnx__ModelProto *model,
 
   TRACE_FATAL(0, model->graph->n_node > MAX_NUM_OF_NODES, "The number of nodes of the model is greater than the hardcoded one");
   printf("I\n");
-  printf("\n resolve: processing %d nodes\n", model->graph->n_node);
+  printf("resolve: processing %zu nodes\n", model->graph->n_node);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
-    printf("resolve: node %d\n", nodeIdx);
+    if (nodeIdx % 500 == 0 || nodeIdx > 7415) printf("resolve: node %d\n", nodeIdx);
     all_context[nodeIdx].onnx_node = model->graph->node[nodeIdx];
 
 
     // Search the inputs for a node
     
-    all_context[nodeIdx].inputs = malloc(sizeof(Onnx__TensorProto) * model->graph->node[nodeIdx]->n_input);
-    printf("malloc1 ");
+    all_context[nodeIdx].inputs = malloc(sizeof(Onnx__TensorProto*) * model->graph->node[nodeIdx]->n_input);
+    if (!all_context[nodeIdx].inputs) { fprintf(stderr, "OOM: inputs at node %d\n", nodeIdx); return; }
     for (int i = 0; i < model->graph->node[nodeIdx]->n_input; i++)
     {
-      printf("cycle %d: %s\n", i, model->graph->node[nodeIdx]->input[i]); // TODO: remove this line. Just for debugging purposes. Remove the \n at the end of the line to see the output of the loop. It's a bit messy but it's for debugging purposes
-      all_context[nodeIdx].inputs[i] = malloc(sizeof(Onnx__TensorProto));
-      printf("malloced ");
       all_context[nodeIdx].inputs[i] = searchTensorProtoByName(model, inputs, nInputs, model->graph->node[nodeIdx]->input[i]);
-      printf("found ");
       if (all_context[nodeIdx].inputs[i] && all_context[nodeIdx].inputs[i]->has_raw_data){
-        printf("pre");
-        /* If the tensor has raw data, deserialize it */
         TRACE(1, true, "input %s has raw data", all_context[nodeIdx].inputs[i]->name);
-        printf("traced ");
-        // TODO: Not tested. Crashing but currently not needed
         convertRawDataOfTensorProto(all_context[nodeIdx].inputs[i]);
-        printf("converted ");  
       }
     }
-    printf("II\n");
-    printf("\n");
-    // Allocate memory for future outputs and set the name
-    all_context[nodeIdx].outputs = malloc(sizeof(Onnx__TensorProto) * model->graph->node[nodeIdx]->n_output);
-    printf("malloc2\n");
+    all_context[nodeIdx].outputs = malloc(sizeof(Onnx__TensorProto*) * model->graph->node[nodeIdx]->n_output);
+    if (!all_context[nodeIdx].outputs) { fprintf(stderr, "OOM: outputs at node %d\n", nodeIdx); return; }
     for (int i = 0; i < model->graph->node[nodeIdx]->n_output; i++)
     {
-      printf("cyclepre ");
       all_context[nodeIdx].outputs[i] = malloc(sizeof(Onnx__TensorProto));
+      if (!all_context[nodeIdx].outputs[i]) { fprintf(stderr, "OOM: output tensor at node %d\n", nodeIdx); return; }
       init_tensor_proto(all_context[nodeIdx].outputs[i]);
-      printf("inited ");
       all_context[nodeIdx].outputs[i]->name = strdup(model->graph->node[nodeIdx]->output[i]);
-      printf("strdup ");
-      // TODO This is unset at this point but set afterward inside each
-      // function. However there is a problem because some node output
-      // is some node else input. Hence if the type is unset it can't
-      // be resolved. Hardcoded to FLOAT but this is a HUGE TODO
       all_context[nodeIdx].outputs[i]->data_type = 1;
     }
-    printf("prototyping ");
-    printf("III \n");
     /*** Prototyping ***/
     // Check model->opset_import->has_version must be True
     // More than 1 opset can be imported. Iterate n_opset_import
@@ -78,38 +58,43 @@ void resolve(Onnx__ModelProto *model,
     // TODO Hackish temporal solution. Use opset 12.
     
     size_t version = 23;
-    printf("searching for preparer of operator %s version %zu\n", model->graph->node[nodeIdx]->op_type, version);
+    char *op_type = model->graph->node[nodeIdx]->op_type;
+    if (!op_type) {
+        fprintf(stderr, "FATAL: node %d has NULL op_type\n", nodeIdx);
+        return;
+    }
+    /* Validate pointer is readable */
+    volatile char test_byte = op_type[0];
+    (void)test_byte;
+    printf("searching for preparer of operator %s version %zu\n", op_type, version);
     operator_preparer prepare = operator_set_find_preparer(model->graph->node[nodeIdx]->op_type, version);
     
-    printf("opset  ");
-    TRACE_FATAL(0, !prepare, "No prepare function could be found for operator '%s' version '%zu'", model->graph->node[nodeIdx]->op_type, version);
-    printf("preparing  ");
-    prepare(&all_context[nodeIdx]);
+    if (!prepare) {
+        fprintf(stderr, "FATAL: No prepare for operator '%s' v%zu at node %d\n", op_type, version, nodeIdx);
+        return;
+    }
+    operator_status prep_status = prepare(&all_context[nodeIdx]);
+    if (prep_status != OP_OK) {
+        fprintf(stderr, "WARNING: prepare returned %d for operator '%s' at node %d\n", prep_status, op_type, nodeIdx);
+    }
     _populatedIdx++;
-    printf("IV\n");
   }
-  printf("V\n");
-  printf("resolve: end\n");
+  printf("resolve: done (%d nodes)\n", _populatedIdx + 1);
   TRACE_EXIT(1);
 }
 
 Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **inputs, int nInputs)
 {
   TRACE_ENTRY(1);
-  printf("inference: start\n");
-  TRACE(1, true, "The graph has nodes=%zu", model->graph->n_node);
-
-  /* Run inference */
-  printf("inference: running %d nodes\n", model->graph->n_node);
+  printf("inference: running %zu nodes\n", model->graph->n_node);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
-    printf("inference: node %d, op=%s\n", nodeIdx, model->graph->node[nodeIdx]->op_type);
+    if (nodeIdx % 500 == 0) printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type);
     TRACE(1, true, "Running node %d, operator=%s", nodeIdx, model->graph->node[nodeIdx]->op_type);
     all_context[nodeIdx].executer(&all_context[nodeIdx]);
   }
 
-  // TODO
-  printf("inference: end\n");
+  printf("inference: done\n");
   TRACE_EXIT(1);
   return 0;
 }

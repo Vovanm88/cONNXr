@@ -5,3 +5,5 @@ dump.txt
 venv
 **/.DS_Store
 **/__pycache__
+model.onnx
+temp_onnx_inputs/

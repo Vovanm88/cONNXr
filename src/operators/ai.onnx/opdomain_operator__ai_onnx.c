@@ -43,6 +43,7 @@ extern operator_set_opname opname_operator__ai_onnx__slice;
 extern operator_set_opname opname_operator__ai_onnx__constantofshape;
 extern operator_set_opname opname_operator__ai_onnx__range;
 extern operator_set_opname opname_operator__ai_onnx__reducemean;
+extern operator_set_opname opname_operator__ai_onnx__and;
 
 operator_set_opdomain opdomain_operator__ai_onnx = {
     .name = "ai.onnx",
@@ -88,6 +89,7 @@ operator_set_opdomain opdomain_operator__ai_onnx = {
         &opname_operator__ai_onnx__constantofshape,
         &opname_operator__ai_onnx__range,
         &opname_operator__ai_onnx__reducemean,
+        &opname_operator__ai_onnx__and,
         NULL
     }
 };

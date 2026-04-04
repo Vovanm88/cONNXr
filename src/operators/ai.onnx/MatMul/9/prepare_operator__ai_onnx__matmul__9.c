@@ -30,30 +30,57 @@ prepare_operator__ai_onnx__matmul__9(
 
     /* INITIALIZE OUTPUTS DATA_TYPE AND SHAPE HERE */
 
-    // Support for arbitrary dimensions with broadcasting for batch dimensions
-    TRACE_FATAL(0, i_A->n_dims < 2 || i_B->n_dims < 2, "MatMul requires at least 2 dimensions");
+    /* numpy.matmul semantics:
+     * 1D: treated as row/column vector
+     * 2D: standard matrix multiply
+     * ND: batch dimensions broadcast, last 2 are matrix dims */
 
-    int64_t n_dims_Y = (i_A->n_dims > i_B->n_dims) ? i_A->n_dims : i_B->n_dims;
-    int64_t a_inner = i_A->dims[i_A->n_dims - 1];
-    int64_t b_inner = i_B->dims[i_B->n_dims - 2];
-    TRACE_FATAL(0, a_inner != b_inner, "Inner dimensions must match for MatMul");
+    /* Effective shapes after promoting 1D inputs */
+    int64_t ndA = i_A->n_dims, ndB = i_B->n_dims;
+    int64_t eA[ndA < 2 ? 2 : ndA], eB[ndB < 2 ? 2 : ndB];
+    int64_t endA, endB;
+    int a_was_1d = 0, b_was_1d = 0;
+
+    if (ndA == 1) { eA[0] = 1; eA[1] = i_A->dims[0]; endA = 2; a_was_1d = 1; }
+    else { for (int64_t i = 0; i < ndA; i++) eA[i] = i_A->dims[i]; endA = ndA; }
+
+    if (ndB == 1) { eB[0] = i_B->dims[0]; eB[1] = 1; endB = 2; b_was_1d = 1; }
+    else { for (int64_t i = 0; i < ndB; i++) eB[i] = i_B->dims[i]; endB = ndB; }
+
+    int64_t n_dims_Y = (endA > endB) ? endA : endB;
 
     o_Y->has_raw_data = 0;
-    o_Y->n_dims = n_dims_Y;
-    o_Y->dims = malloc(o_Y->n_dims * sizeof(int64_t));
     o_Y->data_type = i_A->data_type;
 
-    // Compute broadcasted batch dimensions
-    for (int64_t i = 0; i < n_dims_Y - 2; ++i) {
-        int64_t a_dim = (i < i_A->n_dims - 2) ? i_A->dims[i] : 1;
-        int64_t b_dim = (i < i_B->n_dims - 2) ? i_B->dims[i] : 1;
-        TRACE_FATAL(0, (a_dim != b_dim) && (a_dim != 1) && (b_dim != 1), "Batch dimensions are not broadcastable");
-        o_Y->dims[i] = (a_dim > b_dim) ? a_dim : b_dim;
+    /* Compute output shape */
+    int64_t *ydims = malloc(n_dims_Y * sizeof(int64_t));
+    for (int64_t i = 0; i < n_dims_Y - 2; i++) {
+        int64_t a_dim = (i < endA - 2) ? eA[i + (endA - n_dims_Y)] : 1;
+        int64_t b_dim = (i < endB - 2) ? eB[i + (endB - n_dims_Y)] : 1;
+        ydims[i] = (a_dim > b_dim) ? a_dim : b_dim;
     }
+    ydims[n_dims_Y - 2] = eA[endA - 2]; /* M */
+    ydims[n_dims_Y - 1] = eB[endB - 1]; /* N */
 
-    // Set the matrix dimensions
-    o_Y->dims[n_dims_Y - 2] = i_A->dims[i_A->n_dims - 2];
-    o_Y->dims[n_dims_Y - 1] = i_B->dims[i_B->n_dims - 1];
+    /* Squeeze back if inputs were 1D */
+    if (a_was_1d && b_was_1d) {
+        o_Y->n_dims = 1; o_Y->dims = malloc(sizeof(int64_t)); o_Y->dims[0] = 1;
+    } else if (a_was_1d) {
+        o_Y->n_dims = n_dims_Y - 1;
+        o_Y->dims = malloc(o_Y->n_dims * sizeof(int64_t));
+        for (int64_t i = 0; i < n_dims_Y - 2; i++) o_Y->dims[i] = ydims[i];
+        o_Y->dims[o_Y->n_dims - 1] = ydims[n_dims_Y - 1];
+    } else if (b_was_1d) {
+        o_Y->n_dims = n_dims_Y - 1;
+        o_Y->dims = malloc(o_Y->n_dims * sizeof(int64_t));
+        for (int64_t i = 0; i < n_dims_Y - 2; i++) o_Y->dims[i] = ydims[i];
+        o_Y->dims[o_Y->n_dims - 1] = ydims[n_dims_Y - 2];
+    } else {
+        o_Y->n_dims = n_dims_Y;
+        o_Y->dims = malloc(n_dims_Y * sizeof(int64_t));
+        for (int64_t i = 0; i < n_dims_Y; i++) o_Y->dims[i] = ydims[i];
+    }
+    free(ydims);
 
     /* MALLOC OUTPUT TENSORS HERE */
 

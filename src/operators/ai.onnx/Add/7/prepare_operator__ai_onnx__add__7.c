@@ -2,6 +2,7 @@
 #include "operator__ai_onnx__add__7.h"
 #include "tracing.h"
 #include "utils.h"
+#include "broadcast_utils.h"
 
 operator_status
 prepare_operator__ai_onnx__add__7(
@@ -29,14 +30,11 @@ prepare_operator__ai_onnx__add__7(
 
     /* INITIALIZE OUTPUTS DATA_TYPE AND SHAPE HERE */
 
-    /* There order of operands if unknown. The longest one will determine the output */
-    /* Quick and dirty solution */
     o_C->has_raw_data = 0;
-
-    Onnx__TensorProto *ref = (i_A->n_dims > i_B->n_dims)?i_A:i_B;
-    o_C->dims = ARRAYDUP(ref->dims, ref->n_dims);
-    o_C->n_dims = ref->n_dims;
-    o_C->data_type = ref->data_type;
+    o_C->data_type = i_A->data_type;
+    int64_t nd;
+    o_C->dims = broadcast_shape(i_A->n_dims, i_A->dims, i_B->n_dims, i_B->dims, &nd);
+    o_C->n_dims = nd;
 
     /* MALLOC OUTPUT TENSORS HERE */
 

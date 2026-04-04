@@ -91,12 +91,52 @@ prepare_operator__ai_onnx__constant__12(
     be able to find it. Copy it instead*/
     //ctx->outputs[0] = value->t;
 
-    TRACE_FATAL(0, !a_value, "value not specified!");
-
-    char *saved_name = o_output->name;
-    memcpy(o_output, a_value->t, sizeof(Onnx__TensorProto));
-    o_output->name = saved_name;
-    convertRawDataOfTensorProto(o_output);
+    if (!a_value || !a_value->t) {
+        /* Handle value_int or value_float attributes */
+        Onnx__AttributeProto *a_vi = searchAttributeNyName(ctx->onnx_node->n_attribute,ctx->onnx_node->attribute,"value_int");
+        Onnx__AttributeProto *a_vf = searchAttributeNyName(ctx->onnx_node->n_attribute,ctx->onnx_node->attribute,"value_float");
+        if (a_vi) {
+            o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__INT64;
+            o_output->n_dims = 0;
+            o_output->dims = NULL;
+            o_output->n_int64_data = 1;
+            o_output->int64_data = malloc(sizeof(int64_t));
+            o_output->int64_data[0] = a_vi->i;
+        } else if (a_vf) {
+            o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT;
+            o_output->n_dims = 0;
+            o_output->dims = NULL;
+            o_output->n_float_data = 1;
+            o_output->float_data = malloc(sizeof(float));
+            o_output->float_data[0] = a_vf->f;
+        } else {
+            TRACE_FATAL(0, 1, "Constant: no value attribute found");
+        }
+    } else {
+        Onnx__TensorProto *src = a_value->t;
+        char *saved_name = o_output->name;
+        /* Copy field-by-field instead of memcpy to preserve base and avoid corrupting malloc bookkeeping */
+        o_output->n_dims = src->n_dims;
+        o_output->dims = src->dims;
+        o_output->has_data_type = src->has_data_type;
+        o_output->data_type = src->data_type;
+        o_output->n_float_data = src->n_float_data;
+        o_output->float_data = src->float_data;
+        o_output->n_int32_data = src->n_int32_data;
+        o_output->int32_data = src->int32_data;
+        o_output->n_int64_data = src->n_int64_data;
+        o_output->int64_data = src->int64_data;
+        o_output->n_double_data = src->n_double_data;
+        o_output->double_data = src->double_data;
+        o_output->n_uint64_data = src->n_uint64_data;
+        o_output->uint64_data = src->uint64_data;
+        o_output->n_string_data = src->n_string_data;
+        o_output->string_data = src->string_data;
+        o_output->has_raw_data = src->has_raw_data;
+        o_output->raw_data = src->raw_data;
+        o_output->name = saved_name;
+        convertRawDataOfTensorProto(o_output);
+    }
 
     /* MALLOC OUTPUT TENSORS HERE */
 

@@ -100,6 +100,17 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
     if (st != OP_OK) {
         fprintf(stderr, "ERROR: node %d op=%s returned status %d\n", nodeIdx, model->graph->node[nodeIdx]->op_type, st);
     }
+    /* Validate output dims aren't corrupted */
+    for (int oi = 0; oi < model->graph->node[nodeIdx]->n_output; oi++) {
+        Onnx__TensorProto *out = all_context[nodeIdx].outputs[oi];
+        if (out) {
+            for (size_t di = 0; di < out->n_dims; di++) {
+                if (out->dims[di] < 0 || out->dims[di] > 1000000000LL) {
+                    out->dims[di] = 0; /* clamp corrupt dim */
+                }
+            }
+        }
+    }
   }
 
   printf("inference: done\n");

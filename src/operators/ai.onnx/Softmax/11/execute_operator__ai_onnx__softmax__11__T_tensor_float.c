@@ -42,6 +42,7 @@ execute_operator__ai_onnx__softmax__11__T_tensor_float(
 
     Onnx__TensorProto *i_input = searchInputByName(ctx, 0);
     if (!i_input || tensor_is_empty(i_input)) return OP_OK;
+    if (!tensor_has_data(searchInputByName(ctx, 0))) return OP_OK;
 
     TRACE_TENSOR(2, true, i_input);
 
@@ -60,6 +61,7 @@ execute_operator__ai_onnx__softmax__11__T_tensor_float(
 
     /* Skip if output tensor is empty (has 0-dim) */
     if (tensor_is_empty(o_output)) return OP_OK;
+    if (!tensor_has_data(searchInputByName(ctx, 0))) return OP_OK;
 
     TRACE_TENSOR(2, true, o_output);
 

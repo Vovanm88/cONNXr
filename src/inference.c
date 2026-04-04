@@ -32,6 +32,7 @@ void resolve(Onnx__ModelProto *model,
     // Search the inputs for a node
     
     all_context[nodeIdx].inputs = malloc(sizeof(Onnx__TensorProto*) * model->graph->node[nodeIdx]->n_input);
+    if (!all_context[nodeIdx].inputs) { fprintf(stderr, "OOM: inputs at node %d\n", nodeIdx); return; }
     for (int i = 0; i < model->graph->node[nodeIdx]->n_input; i++)
     {
       all_context[nodeIdx].inputs[i] = searchTensorProtoByName(model, inputs, nInputs, model->graph->node[nodeIdx]->input[i]);
@@ -41,9 +42,11 @@ void resolve(Onnx__ModelProto *model,
       }
     }
     all_context[nodeIdx].outputs = malloc(sizeof(Onnx__TensorProto*) * model->graph->node[nodeIdx]->n_output);
+    if (!all_context[nodeIdx].outputs) { fprintf(stderr, "OOM: outputs at node %d\n", nodeIdx); return; }
     for (int i = 0; i < model->graph->node[nodeIdx]->n_output; i++)
     {
       all_context[nodeIdx].outputs[i] = malloc(sizeof(Onnx__TensorProto));
+      if (!all_context[nodeIdx].outputs[i]) { fprintf(stderr, "OOM: output tensor at node %d\n", nodeIdx); return; }
       init_tensor_proto(all_context[nodeIdx].outputs[i]);
       all_context[nodeIdx].outputs[i]->name = strdup(model->graph->node[nodeIdx]->output[i]);
       all_context[nodeIdx].outputs[i]->data_type = 1;

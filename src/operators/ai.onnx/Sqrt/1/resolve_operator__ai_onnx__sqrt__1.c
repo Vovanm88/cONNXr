@@ -8,6 +8,7 @@ operator_executer resolve_operator__ai_onnx__sqrt__1(node_context *ctx) {
     if (ctx->inputs[0]) { T = ctx->inputs[0]->data_type; }
     switch (T) {
     case 0:
+    case ONNX__TENSOR_PROTO__DATA_TYPE__BOOL:
     case ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT: { executer = (operator_executer)&execute_operator__ai_onnx__sqrt__1__T_tensor_float; break; }
     case ONNX__TENSOR_PROTO__DATA_TYPE__DOUBLE: { executer = (operator_executer)&execute_operator__ai_onnx__sqrt__1__T_tensor_double; break; }
     default:

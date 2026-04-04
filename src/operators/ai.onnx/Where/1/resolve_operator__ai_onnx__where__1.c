@@ -9,6 +9,7 @@ operator_executer resolve_operator__ai_onnx__where__1(node_context *ctx) {
     if (ctx->inputs[1]) { T = ctx->inputs[1]->data_type; }
     switch (T) {
     case 0:
+    case ONNX__TENSOR_PROTO__DATA_TYPE__BOOL:
     case ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT: { executer = (operator_executer)&execute_operator__ai_onnx__where__1__T_tensor_float; break; }
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT64: { executer = (operator_executer)&execute_operator__ai_onnx__where__1__T_tensor_int64; break; }
     default:

@@ -143,6 +143,7 @@ prepare_operator__ai_onnx__maxpool__12(
     int64_t h_pad_aux = op_ctx->pads_begin[0] + op_ctx->pads_end[0];
     int64_t w_pad_aux = op_ctx->pads_begin[1] + op_ctx->pads_end[1];
 
+    o_Y->data_type = i_X->data_type;
     o_Y->n_dims  = i_X->n_dims;
     o_Y->dims    = ARRAYDUP(i_X->dims, i_X->n_dims);
     // strange dimension calculation

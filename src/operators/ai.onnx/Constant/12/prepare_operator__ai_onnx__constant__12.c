@@ -110,7 +110,33 @@ prepare_operator__ai_onnx__constant__12(
             o_output->float_data = malloc(sizeof(float));
             o_output->float_data[0] = a_vf->f;
         } else {
-            TRACE_FATAL(0, 1, "Constant: no value attribute found");
+            Onnx__AttributeProto *a_vis = searchAttributeNyName(ctx->onnx_node->n_attribute,ctx->onnx_node->attribute,"value_ints");
+            Onnx__AttributeProto *a_vfs = searchAttributeNyName(ctx->onnx_node->n_attribute,ctx->onnx_node->attribute,"value_floats");
+            if (a_vis && a_vis->n_ints > 0) {
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__INT64;
+                o_output->n_dims = 1;
+                o_output->dims = malloc(sizeof(int64_t));
+                o_output->dims[0] = a_vis->n_ints;
+                o_output->n_int64_data = a_vis->n_ints;
+                o_output->int64_data = malloc(a_vis->n_ints * sizeof(int64_t));
+                for (size_t i = 0; i < a_vis->n_ints; i++) o_output->int64_data[i] = a_vis->ints[i];
+            } else if (a_vfs && a_vfs->n_floats > 0) {
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT;
+                o_output->n_dims = 1;
+                o_output->dims = malloc(sizeof(int64_t));
+                o_output->dims[0] = a_vfs->n_floats;
+                o_output->n_float_data = a_vfs->n_floats;
+                o_output->float_data = malloc(a_vfs->n_floats * sizeof(float));
+                for (size_t i = 0; i < a_vfs->n_floats; i++) o_output->float_data[i] = a_vfs->floats[i];
+            } else {
+                /* Scalar constant with no value = float 0 */
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT;
+                o_output->n_dims = 0;
+                o_output->dims = NULL;
+                o_output->n_float_data = 1;
+                o_output->float_data = malloc(sizeof(float));
+                o_output->float_data[0] = 0.0f;
+            }
         }
     } else {
         Onnx__TensorProto *src = a_value->t;
@@ -118,8 +144,21 @@ prepare_operator__ai_onnx__constant__12(
         /* Copy field-by-field instead of memcpy to preserve base and avoid corrupting malloc bookkeeping */
         o_output->n_dims = src->n_dims;
         o_output->dims = src->dims;
-        o_output->has_data_type = src->has_data_type;
+        o_output->has_data_type = 1;
         o_output->data_type = src->data_type;
+        /* If data_type is unset, infer from available data fields */
+        if (o_output->data_type == 0) {
+            if (src->n_float_data > 0 || (src->has_raw_data && src->raw_data.len > 0))
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT;
+            else if (src->n_int64_data > 0)
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__INT64;
+            else if (src->n_int32_data > 0)
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__INT32;
+            else if (src->n_double_data > 0)
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__DOUBLE;
+            else
+                o_output->data_type = ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT;
+        }
         o_output->n_float_data = src->n_float_data;
         o_output->float_data = src->float_data;
         o_output->n_int32_data = src->n_int32_data;

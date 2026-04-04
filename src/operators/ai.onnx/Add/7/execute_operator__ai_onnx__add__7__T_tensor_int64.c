@@ -8,9 +8,6 @@ execute_operator__ai_onnx__add__7__T_tensor_int64(
     node_context *ctx
 )
 {
-    TRACE_ENTRY(1);
-    TRACE_NODE(2, true, ctx->onnx_node);
-
     Onnx__TensorProto *i_A = searchInputByName(ctx, 0);
     Onnx__TensorProto *i_B = searchInputByName(ctx, 1);
     Onnx__TensorProto *o_C = searchOutputByName(ctx, 0);
@@ -23,6 +20,5 @@ execute_operator__ai_onnx__add__7__T_tensor_int64(
         o_C->int64_data[i] = i_A->int64_data[ai] + i_B->int64_data[bi];
     }
 
-    TRACE_EXIT(1);
     return OP_OK;
 }

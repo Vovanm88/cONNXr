@@ -93,6 +93,10 @@ static void micro_float(const float *A, int64_t lda,
 void matmul_float(const float *A, int64_t M, int64_t K,
                   const float *B, int64_t N, float *C)
 {
+    if (!A || !B || !C || M <= 0 || K <= 0 || N <= 0 || (uintptr_t)A < 0x1000 || (uintptr_t)B < 0x1000) {
+        if (C && M > 0 && N > 0) memset(C, 0, (size_t)(M * N) * sizeof(float));
+        return;
+    }
     memset(C, 0, (size_t)(M * N) * sizeof(float));
 
     /* Small matrix fast path: simple i-k-j without tiling */

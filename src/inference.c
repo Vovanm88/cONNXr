@@ -15,18 +15,19 @@ void resolve(Onnx__ModelProto *model,
              Onnx__TensorProto **inputs,
              int nInputs)
 {
-  TRACE_ENTRY(1);
-  printf("resolve: start\n");
-  /* Resolving operators and input/outputs. Has to be moved outside of infeference */
   _populatedIdx = -1;
-
-  TRACE_FATAL(0, model->graph->n_node > MAX_NUM_OF_NODES, "The number of nodes of the model is greater than the hardcoded one");
-  printf("I\n");
-  printf("resolve: processing %zu nodes\n", model->graph->n_node);
+  /* Convert raw_data for all initializers up front */
+  for (int i = 0; i < model->graph->n_initializer; i++) {
+    if (model->graph->initializer[i]->has_raw_data) {
+      convertRawDataOfTensorProto(model->graph->initializer[i]);
+    }
+  }
+  printf("resolve: converted %zu initializers, processing %zu nodes\n", model->graph->n_initializer, model->graph->n_node);
+  fflush(stdout);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
-    if (nodeIdx % 500 == 0 || nodeIdx > 7415) printf("resolve: node %d\n", nodeIdx);
     all_context[nodeIdx].onnx_node = model->graph->node[nodeIdx];
+    if (nodeIdx % 100 == 0 || nodeIdx < 5) { printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout); }
 
 
     // Search the inputs for a node
@@ -49,7 +50,7 @@ void resolve(Onnx__ModelProto *model,
       if (!all_context[nodeIdx].outputs[i]) { fprintf(stderr, "OOM: output tensor at node %d\n", nodeIdx); return; }
       init_tensor_proto(all_context[nodeIdx].outputs[i]);
       all_context[nodeIdx].outputs[i]->name = strdup(model->graph->node[nodeIdx]->output[i]);
-      all_context[nodeIdx].outputs[i]->data_type = 1;
+      /* data_type is set by each operator's prepare function */
     }
     /*** Prototyping ***/
     // Check model->opset_import->has_version must be True
@@ -59,14 +60,7 @@ void resolve(Onnx__ModelProto *model,
     
     size_t version = 23;
     char *op_type = model->graph->node[nodeIdx]->op_type;
-    if (!op_type) {
-        fprintf(stderr, "FATAL: node %d has NULL op_type\n", nodeIdx);
-        return;
-    }
-    /* Validate pointer is readable */
-    volatile char test_byte = op_type[0];
-    (void)test_byte;
-    printf("searching for preparer of operator %s version %zu\n", op_type, version);
+    if (nodeIdx % 100 == 0) printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
     operator_preparer prepare = operator_set_find_preparer(model->graph->node[nodeIdx]->op_type, version);
     
     if (!prepare) {
@@ -80,21 +74,24 @@ void resolve(Onnx__ModelProto *model,
     _populatedIdx++;
   }
   printf("resolve: done (%d nodes)\n", _populatedIdx + 1);
-  TRACE_EXIT(1);
+  fflush(stdout);
 }
 
 Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **inputs, int nInputs)
 {
-  TRACE_ENTRY(1);
   printf("inference: running %zu nodes\n", model->graph->n_node);
+  fflush(stdout);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
-    if (nodeIdx % 500 == 0) printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type);
-    TRACE(1, true, "Running node %d, operator=%s", nodeIdx, model->graph->node[nodeIdx]->op_type);
-    all_context[nodeIdx].executer(&all_context[nodeIdx]);
+    if (nodeIdx % 1000 == 0) { printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout); }
+    if (!all_context[nodeIdx].executer) { fprintf(stderr, "FATAL: node %d has NULL executer\n", nodeIdx); return 0; }
+    operator_status st = all_context[nodeIdx].executer(&all_context[nodeIdx]);
+    if (st != OP_OK) {
+        fprintf(stderr, "ERROR: node %d op=%s returned status %d\n", nodeIdx, model->graph->node[nodeIdx]->op_type, st);
+    }
   }
 
   printf("inference: done\n");
-  TRACE_EXIT(1);
+  fflush(stdout);
   return 0;
 }

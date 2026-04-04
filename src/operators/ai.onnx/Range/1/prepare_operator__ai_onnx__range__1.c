@@ -20,6 +20,7 @@ prepare_operator__ai_onnx__range__1(node_context *ctx)
     o_output->data_type = i_start->data_type;
     o_output->n_dims = 1;
     o_output->dims = malloc(sizeof(int64_t));
+    o_output->dims[0] = 0;
     printf("\nmalloced\n");
     ctx->executer = (operator_executer)&execute_operator__ai_onnx__range__1__T_tensor_float;
     printf("\n executer set\n");

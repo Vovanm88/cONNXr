@@ -12,6 +12,7 @@ extern operator_set_opname opname_operator__ai_onnx__relu;
 extern operator_set_opname opname_operator__ai_onnx__conv;
 extern operator_set_opname opname_operator__ai_onnx__argmax;
 extern operator_set_opname opname_operator__ai_onnx__add;
+extern operator_set_opname opname_operator__ai_onnx__and;
 extern operator_set_opname opname_operator__ai_onnx__leakyrelu;
 extern operator_set_opname opname_operator__ai_onnx__reshape;
 extern operator_set_opname opname_operator__ai_onnx__globalaveragepool;
@@ -56,6 +57,7 @@ operator_set_opdomain opdomain_operator__ai_onnx = {
         &opname_operator__ai_onnx__conv,
         &opname_operator__ai_onnx__argmax,
         &opname_operator__ai_onnx__add,
+        &opname_operator__ai_onnx__and,
         &opname_operator__ai_onnx__leakyrelu,
         &opname_operator__ai_onnx__reshape,
         &opname_operator__ai_onnx__globalaveragepool,

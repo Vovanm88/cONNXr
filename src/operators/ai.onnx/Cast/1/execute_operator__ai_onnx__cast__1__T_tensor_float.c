@@ -15,6 +15,8 @@ execute_operator__ai_onnx__cast__1__T_tensor_float(node_context *ctx)
     for (int64_t d = 0; d < (int64_t)i_in->n_dims; d++) n *= i_in->dims[d];
     /* Get source data as doubles first */
     double *tmp = malloc(n * sizeof(double));
+    printf("\n n: %lld\n", n);
+    printf("i_in data type: %d\n", i_in->data_type);
     switch (i_in->data_type) {
         case ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT:
             for (int64_t i = 0; i < n; i++) tmp[i] = i_in->float_data[i]; break;
@@ -23,7 +25,7 @@ execute_operator__ai_onnx__cast__1__T_tensor_float(node_context *ctx)
         case ONNX__TENSOR_PROTO__DATA_TYPE__INT32:
             for (int64_t i = 0; i < n; i++) tmp[i] = i_in->int32_data[i]; break;
         case ONNX__TENSOR_PROTO__DATA_TYPE__INT64:
-            for (int64_t i = 0; i < n; i++) tmp[i] = (double)i_in->int64_data[i]; break;
+            for (int64_t i = 0; i < n; i++) tmp[i] = i_in->int64_data[i]; break;
         default: break;
     }
     /* Write to destination type */

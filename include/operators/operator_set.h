@@ -47,14 +47,18 @@ operator_set_find_preparer(
         for (operator_set_opname **opname = (*opdomain)->opnames; *opname; opname++)
         {
             if (strcmp((*opname)->name,name) == 0) {
+                
                 for (operator_set_opversion **opversion = (*opname)->opversions; *opversion; opversion++)
                 {
                     if ((*opversion)->version <= version) {
+
                         if (!tmp || (*opversion)->version >= tmp->version) {
+                            
                             tmp = *opversion;
                         }
                     }
                 }
+                
                 if (tmp) {
                     TRACE(2, true, "Found operator '%s' version '%zu'", name, tmp->version);
                     return tmp->preparer;

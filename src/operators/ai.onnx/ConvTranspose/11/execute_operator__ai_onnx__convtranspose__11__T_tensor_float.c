@@ -33,25 +33,25 @@ execute_operator__ai_onnx__convtranspose__11__T_tensor_float(
 
     TRACE_TENSOR(2, true, i_X);
     TRACE_TENSOR(2, true, i_W);
-    TRACE_TENSOR(2, B, i_B);
+    TRACE_TENSOR(2, true, i_B);
 
     context_operator__ai_onnx__convtranspose__11 *op_ctx = ctx->executer_context;
 
     // size is not needed, because this operator works for one fixed size only
 
-    // char* auto_pad = op_ctx->auto_pad;
-    // size_t n_dilations = op_ctx->n_dilations;
+    char* auto_pad = op_ctx->auto_pad;
+    size_t n_dilations = op_ctx->n_dilations;
     int64_t* dilations = op_ctx->dilations;
-    // int64_t group = op_ctx->group;
-    // size_t n_kernel_shape = op_ctx->n_kernel_shape;
-    // int64_t* kernel_shape = op_ctx->kernel_shape;
-    // size_t n_output_padding = op_ctx->n_output_padding;
-    // int64_t* output_padding = op_ctx->output_padding;
-    // size_t n_output_shape = op_ctx->n_output_shape;
-    // int64_t* output_shape = op_ctx->output_shape;
-    // size_t n_pads = op_ctx->n_pads;
+    int64_t group = op_ctx->group;
+    size_t n_kernel_shape = op_ctx->n_kernel_shape;
+    int64_t* kernel_shape = op_ctx->kernel_shape;
+    size_t n_output_padding = op_ctx->n_output_padding;
+    int64_t* output_padding = op_ctx->output_padding;
+    size_t n_output_shape = op_ctx->n_output_shape;
+    int64_t* output_shape = op_ctx->output_shape;
+    size_t n_pads = op_ctx->n_pads;
     int64_t* pads = op_ctx->pads;
-    // size_t n_strides = op_ctx->n_strides;
+    size_t n_strides = op_ctx->n_strides;
     int64_t* strides = op_ctx->strides;
 
     // TRACE_VAR(2, true, auto_pad, "\"%s\"");

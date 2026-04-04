@@ -32,7 +32,7 @@ prepare_operator__ai_onnx__convtranspose__11(
 
     TRACE_TENSOR(2, true, i_X);
     TRACE_TENSOR(2, true, i_W);
-    TRACE_TENSOR(2, B, i_B);
+    TRACE_TENSOR(2, true, i_B);
 
     // Onnx__AttributeProto *a_auto_pad = searchAttributeNyName(ctx->onnx_node->n_attribute,ctx->onnx_node->attribute,"auto_pad");
     Onnx__AttributeProto *a_dilations = searchAttributeNyName(ctx->onnx_node->n_attribute,ctx->onnx_node->attribute,"dilations");
@@ -71,6 +71,7 @@ prepare_operator__ai_onnx__convtranspose__11(
     int kernelSizeY = i_W->dims[2];
     int outputChannels = i_W->dims[1];
 
+    int64_t default_group = 1;
     if(i_B != NULL) {
         //int biasSize = i_B->dims[0];
         TRACE_FATAL(0, i_B->dims[0] != i_W->dims[1] * default_group, "size of input channels needs to be qual with bias");
@@ -79,7 +80,7 @@ prepare_operator__ai_onnx__convtranspose__11(
     //number of tensor axes minus batch minus channel 
     int dim = i_X->n_dims - 2;
     
-    int64_t default_group = 1;
+    //int64_t default_group = 1;
     // char* default_auto_pad = ;
     size_t default_n_dilations = dim;
     int64_t default_dilation = 1;

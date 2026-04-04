@@ -12,9 +12,11 @@ execute_operator__ai_onnx__reducemean__1__T_tensor_float(node_context *ctx)
 
     Onnx__TensorProto *i_data = searchInputByName(ctx, 0);
     if (!i_data || tensor_is_empty(i_data)) return OP_OK;
+    if (!tensor_has_data(searchInputByName(ctx, 0))) return OP_OK;
     Onnx__TensorProto *o_reduced = searchOutputByName(ctx, 0);
     /* Skip if output tensor is empty (has 0-dim) */
     if (tensor_is_empty(o_reduced)) return OP_OK;
+    if (!tensor_has_data(searchInputByName(ctx, 0))) return OP_OK;
 
     Onnx__AttributeProto *a_axes = searchAttributeNyName(
         ctx->onnx_node->n_attribute, ctx->onnx_node->attribute, "axes");

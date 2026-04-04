@@ -491,25 +491,25 @@ mallocTensorData(Onnx__TensorProto *dst) {
     case ONNX__TENSOR_PROTO__DATA_TYPE__UINT8:
       n_data         = &dst->n_int32_data;
       data           = (void*) &dst->int32_data;
-      size_element   = sizeof(uint8_t);
+      size_element   = sizeof(int32_t); /* operators store 1 value per int32 */
       size_container = sizeof(int32_t);
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT8:
       n_data         = &dst->n_int32_data;
       data           = (void*) &dst->int32_data;
-      size_element   = sizeof(int8_t);
+      size_element   = sizeof(int32_t);
       size_container = sizeof(int32_t);
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__UINT16:
       n_data         = &dst->n_int32_data;
       data           = (void*) &dst->int32_data;
-      size_element   = sizeof(uint16_t);
+      size_element   = sizeof(int32_t);
       size_container = sizeof(int32_t);
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT16:
       n_data         = &dst->n_int32_data;
       data           = (void*) &dst->int32_data;
-      size_element   = sizeof(int16_t);
+      size_element   = sizeof(int32_t);
       size_container = sizeof(int32_t);
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__INT32:
@@ -533,13 +533,13 @@ mallocTensorData(Onnx__TensorProto *dst) {
     case ONNX__TENSOR_PROTO__DATA_TYPE__BOOL:
       n_data         = &dst->n_int32_data;
       data           = (void*) &dst->int32_data;
-      size_element   = sizeof(bool);
+      size_element   = sizeof(int32_t); /* operators store 1 bool per int32 */
       size_container = sizeof(int32_t);
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT16:
       n_data         = &dst->n_int32_data;
       data           = (void*) &dst->int32_data;
-      size_element   = sizeof(float)/2;
+      size_element   = sizeof(int32_t); /* 1 fp16 per int32 slot */
       size_container = sizeof(int32_t);
       break;
     case ONNX__TENSOR_PROTO__DATA_TYPE__DOUBLE:

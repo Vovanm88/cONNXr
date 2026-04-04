@@ -24,14 +24,17 @@ execute_operator__ai_onnx__slice__1__T_tensor_float(node_context *ctx)
 {
     Onnx__TensorProto *i_data = searchInputByName(ctx, 0);
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
-    if (tensor_is_empty(o_output) || tensor_is_empty(i_data)) return OP_OK;
     if (!i_data || !o_output) return OP_OK;
+    if (tensor_is_empty(o_output) || tensor_is_empty(i_data)) return OP_OK;
+    if (!tensor_has_data(i_data)) return OP_OK;
 
     context_operator__ai_onnx__slice__1 *op_ctx = ctx->executer_context;
-    if (!op_ctx) return OP_OK;
+    if (!op_ctx || !op_ctx->starts || !op_ctx->steps) return OP_OK;
     int64_t ndims = i_data->n_dims;
+    if (ndims <= 0 || ndims > 8) return OP_OK; /* sanity check */
     int64_t *in_strides = malloc(ndims * sizeof(int64_t));
     int64_t *out_strides = malloc(ndims * sizeof(int64_t));
+    if (!in_strides || !out_strides) { free(in_strides); free(out_strides); return OP_OK; }
     in_strides[ndims - 1] = 1;
     out_strides[ndims - 1] = 1;
     for (int64_t i = ndims - 2; i >= 0; i--) {

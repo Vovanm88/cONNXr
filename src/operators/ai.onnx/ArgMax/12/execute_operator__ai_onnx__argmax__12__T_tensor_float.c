@@ -2,6 +2,7 @@
 #include "operator__ai_onnx__argmax__12.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__argmax__12__T_tensor_float(
@@ -15,6 +16,7 @@ execute_operator__ai_onnx__argmax__12__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_data = searchInputByName(ctx, 0);
+    if (!i_data || tensor_is_empty(i_data)) return OP_OK;
 
     TRACE_TENSOR(2, true, i_data);
 
@@ -29,6 +31,9 @@ execute_operator__ai_onnx__argmax__12__T_tensor_float(
     // TRACE_VAR(2, true, select_last_index, "%" PRId64);
 
     Onnx__TensorProto *o_reduced = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_reduced)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_reduced);
 

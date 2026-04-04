@@ -5,16 +5,21 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__range__1__T_tensor_float(node_context *ctx)
 {
     Onnx__TensorProto *i_start = searchInputByName(ctx, 0);
+    if (!i_start || tensor_is_empty(i_start)) return OP_OK;
     Onnx__TensorProto *i_limit = searchInputByName(ctx, 1);
     Onnx__TensorProto *i_delta = searchInputByName(ctx, 2);
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
 
     if (!i_start || !i_limit || !i_delta) return OP_EINVAL;
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_output)) return OP_OK;
 
     if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT) {
         float s = i_start->float_data[0], l = i_limit->float_data[0], d = i_delta->float_data[0];

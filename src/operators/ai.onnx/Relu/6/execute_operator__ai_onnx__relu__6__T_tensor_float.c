@@ -2,6 +2,7 @@
 #include "operator__ai_onnx__relu__6.h"
 #include "tracing.h"
 #include "utils.h"
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__relu__6__T_tensor_float(
@@ -15,12 +16,16 @@ execute_operator__ai_onnx__relu__6__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_X = searchInputByName(ctx, 0);
+    if (!i_X || tensor_is_empty(i_X)) return OP_OK;
 
     TRACE_TENSOR(2, true, i_X);
 
     // context_operator__ai_onnx__relu__6 *op_ctx = ctx->executer_context;
 
     Onnx__TensorProto *o_Y = searchOutputByName(ctx, 0);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_Y)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_Y);
 

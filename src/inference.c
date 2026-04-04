@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <signal.h>
+static volatile int _current_node = -1;
+static volatile const char *_current_op = "?";
+static void segv_handler(int sig) {
+    fprintf(stderr, "\n*** SIGSEGV at node %d op=%s ***\n", _current_node, _current_op);
+    _exit(139);
+}
 #include "onnx.pb-c.h"
 #include "utils.h"
 #include "tracing.h"
@@ -79,12 +86,16 @@ void resolve(Onnx__ModelProto *model,
 
 Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **inputs, int nInputs)
 {
+  signal(SIGSEGV, segv_handler);
   printf("inference: running %zu nodes\n", model->graph->n_node);
   fflush(stdout);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
     if (nodeIdx % 1000 == 0) { printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout); }
     if (!all_context[nodeIdx].executer) { fprintf(stderr, "FATAL: node %d has NULL executer\n", nodeIdx); return 0; }
+    _current_node = nodeIdx;
+    _current_op = model->graph->node[nodeIdx]->op_type;
+
     operator_status st = all_context[nodeIdx].executer(&all_context[nodeIdx]);
     if (st != OP_OK) {
         fprintf(stderr, "ERROR: node %d op=%s returned status %d\n", nodeIdx, model->graph->node[nodeIdx]->op_type, st);

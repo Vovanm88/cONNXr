@@ -3,6 +3,7 @@
 #include "tracing.h"
 #include "utils.h"
 #include <math.h>
+#include "op_utils.h"
 
 static inline
 void
@@ -40,14 +41,16 @@ execute_operator__ai_onnx__softmax__11__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_input = searchInputByName(ctx, 0);
+    if (!i_input || tensor_is_empty(i_input)) return OP_OK;
 
     TRACE_TENSOR(2, true, i_input);
 
     context_operator__ai_onnx__softmax__11 *op_ctx = ctx->executer_context;
+    if (!op_ctx) return OP_OK;
 
-    // int64_t axis = op_ctx->axis;
     int64_t N = op_ctx->N;
     int64_t D = op_ctx->D;
+    if (N == 0 || D == 0) return OP_OK;
 
     // TRACE_VAR(2, true, axis, "%" PRId64);
     TRACE_VAR(2, true, N, "%" PRId64);
@@ -55,13 +58,18 @@ execute_operator__ai_onnx__softmax__11__T_tensor_float(
 
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
 
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_output)) return OP_OK;
+
     TRACE_TENSOR(2, true, o_output);
 
     /* DO CALCULATION HERE */
 
-    for (int n = 0; n < N; n++) {
-        int offset = D*n;
-        softmax(&i_input->float_data[offset], &o_output->float_data[offset], D);
+    if (i_input->float_data && o_output->float_data) {
+        for (int n = 0; n < N; n++) {
+            int offset = D*n;
+            softmax(&i_input->float_data[offset], &o_output->float_data[offset], D);
+        }
     }
 
     TRACE_EXIT(1);

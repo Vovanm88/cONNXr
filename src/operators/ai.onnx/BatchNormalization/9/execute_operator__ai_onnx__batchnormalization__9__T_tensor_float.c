@@ -3,6 +3,7 @@
 #include "tracing.h"
 #include "utils.h"
 #include <math.h>
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__batchnormalization__9__T_tensor_float(
@@ -16,6 +17,7 @@ execute_operator__ai_onnx__batchnormalization__9__T_tensor_float(
     /* UNCOMMENT AS NEEDED */
 
     Onnx__TensorProto *i_X = searchInputByName(ctx, 0);
+    if (!i_X || tensor_is_empty(i_X)) return OP_OK;
     Onnx__TensorProto *i_scale = searchInputByName(ctx, 1);
     Onnx__TensorProto *i_B = searchInputByName(ctx, 2);
     Onnx__TensorProto *i_mean = searchInputByName(ctx, 3);
@@ -40,6 +42,9 @@ execute_operator__ai_onnx__batchnormalization__9__T_tensor_float(
     // Onnx__TensorProto *o_var = searchOutputByName(ctx, 2);
     // Onnx__TensorProto *o_saved_mean = searchOutputByName(ctx, 3);
     // Onnx__TensorProto *o_saved_var = searchOutputByName(ctx, 4);
+
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_Y)) return OP_OK;
 
     TRACE_TENSOR(2, true, o_Y);
     // TRACE_TENSOR(2, mean, o_mean);

@@ -45,9 +45,10 @@ Onnx__TensorProto* searchTensorProtoByName(Onnx__ModelProto *model,
     for (int node_i = 0; node_i < _populatedIdx+1; node_i++)
     {
       for (int output_i = 0; output_i < all_context[node_i].onnx_node->n_output; output_i++){
-        if (!all_context[node_i].outputs[output_i] || !all_context[node_i].outputs[output_i]->name) continue;
-        TRACE(1, true, "Searching %s, found %s", name, all_context[node_i].outputs[output_i]->name);
-        if (!strcmp(all_context[node_i].outputs[output_i]->name, name))
+        if (!all_context[node_i].outputs[output_i]) continue;
+        char *oname = all_context[node_i].outputs[output_i]->name;
+        if (!oname || (uintptr_t)oname < 0x1000) continue;
+        if (!strcmp(oname, name))
         {
           TRACE(1, true, "Found TensorProto in outputs from new context name=%s", all_context[node_i].outputs[output_i]->name);
           TRACE_EXIT(1);
@@ -65,37 +66,10 @@ Onnx__TensorProto* searchTensorProtoByName(Onnx__ModelProto *model,
 Onnx__TensorProto* searchInputByName(node_context *ctx,
                                      int index)
 {
-  TRACE_ENTRY(1);
-  // Just return null if we are accesing an optional parameters that is not present
-  if (index > ctx->onnx_node->n_input-1)
-  {
-    TRACE_WARN(1, true, "index (%d) exceeds number of inputs (%zu)!", index, ctx->onnx_node->n_input);
-    TRACE_EXIT(1);
-    return NULL;
-  }
-
-  // Just return null if input name is empty (marked as skipped)
-  if (!*ctx->onnx_node->input[index]) {
-    TRACE_WARN(1, true, "index (%d) specifies skipped input!", index);
-    TRACE_EXIT(1);
-    return NULL;
-  }
-
-  for (int i = 0; i < ctx->onnx_node->n_input; i++)
-  {
-    if (!ctx->inputs[i]) {
-      continue;
-    }
-    TRACE(2, true, "Searching inputs %s, %s", ctx->inputs[i]->name, ctx->onnx_node->input[index]);
-    if (!strcmp(ctx->inputs[i]->name, ctx->onnx_node->input[index]))
-    {
-      TRACE_EXIT(1);
-      return ctx->inputs[i];
-    }
-  }
-  TRACE_WARN(1, true, "%s not found", ctx->onnx_node->input[index]);
-  TRACE_EXIT(1);
-  return NULL;
+  /* inputs[i] was already resolved during the resolve phase to match onnx_node->input[i] */
+  if (index >= (int)ctx->onnx_node->n_input) return NULL;
+  if (!ctx->onnx_node->input[index] || !*ctx->onnx_node->input[index]) return NULL;
+  return ctx->inputs[index];
 }
 
 Onnx__TensorProto* searchOutputByName(node_context *ctx,
@@ -609,6 +583,7 @@ mallocTensorData(Onnx__TensorProto *dst) {
   for (int i = 0; i < dst->n_dims; i++) {
     num *= dst->dims[i];
   }
+  if (num == 0) num = 1; /* Allocate at least 1 element to avoid 0-byte malloc */
   *n_data = (num*size_element+size_container-1)/size_container;
   *data   = malloc( (*n_data) * size_container);
 

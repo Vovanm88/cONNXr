@@ -2,10 +2,14 @@
 #include "tracing.h"
 #include "utils.h"
 #include <stdint.h>
+#include "op_utils.h"
 operator_status execute_operator__ai_onnx__gather__1__T_tensor_int64(node_context *ctx) {
     Onnx__TensorProto *i_data = searchInputByName(ctx, 0);
     Onnx__TensorProto *i_indices = searchInputByName(ctx, 1);
     Onnx__TensorProto *o_output = searchOutputByName(ctx, 0);
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_output)) return OP_OK;
+
     Onnx__AttributeProto *a_axis = searchAttributeNyName(
         ctx->onnx_node->n_attribute, ctx->onnx_node->attribute, "axis");
     int64_t axis = a_axis ? a_axis->i : 0;

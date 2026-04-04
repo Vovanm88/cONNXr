@@ -4,15 +4,26 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include "op_utils.h"
 
 operator_status
 execute_operator__ai_onnx__cast__1__T_tensor_float(node_context *ctx)
 {
     Onnx__TensorProto *i_in = searchInputByName(ctx, 0);
+    if (!i_in || tensor_is_empty(i_in)) return OP_OK;
     Onnx__TensorProto *o_out = searchOutputByName(ctx, 0);
+    /* Skip if output tensor is empty (has 0-dim) */
+    if (tensor_is_empty(o_out)) return OP_OK;
+
     int64_t n = 1;
     for (int64_t d = 0; d < (int64_t)i_in->n_dims; d++) n *= i_in->dims[d];
     if (n == 0) return OP_OK;
+    if (n < 0 || n > 1000000000LL) {
+        fprintf(stderr, "Cast: suspicious n=%lld from %zu dims:", (long long)n, i_in->n_dims);
+        for (int64_t d = 0; d < (int64_t)i_in->n_dims; d++) fprintf(stderr, " %lld", (long long)i_in->dims[d]);
+        fprintf(stderr, "\n");
+        return OP_EINVAL;
+    }
 
     double *tmp = malloc(n * sizeof(double));
     if (!tmp) return OP_ENOMEM;

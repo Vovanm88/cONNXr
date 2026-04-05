@@ -29,8 +29,8 @@ void resolve(Onnx__ModelProto *model,
       convertRawDataOfTensorProto(model->graph->initializer[i]);
     }
   }
-  printf("resolve: converted %zu initializers, processing %zu nodes\n", model->graph->n_initializer, model->graph->n_node);
-  fflush(stdout);
+  //printf("resolve: converted %zu initializers, processing %zu nodes\n", model->graph->n_initializer, model->graph->n_node);
+  //fflush(stdout);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
     all_context[nodeIdx].onnx_node = model->graph->node[nodeIdx];
@@ -67,8 +67,8 @@ void resolve(Onnx__ModelProto *model,
     
     size_t version = 23;
     char *op_type = model->graph->node[nodeIdx]->op_type;
-    if (nodeIdx % 100 ==0)
-      printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
+    //if (nodeIdx % 100 ==0)
+      //printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
     operator_preparer prepare = operator_set_find_preparer(model->graph->node[nodeIdx]->op_type, version);
     
     if (!prepare) {
@@ -92,7 +92,7 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
   fflush(stdout);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
-    printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout);
+    //printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout);
     if (!all_context[nodeIdx].executer) { fprintf(stderr, "FATAL: node %d has NULL executer\n", nodeIdx); return 0; }
     _current_node = nodeIdx;
     _current_op = model->graph->node[nodeIdx]->op_type;

@@ -29,6 +29,12 @@ prepare_operator__ai_onnx__gather__1(node_context *ctx)
     mallocTensorData(o_output);
     ctx->executer = resolve_operator__ai_onnx__gather__1(ctx);
 
+    /* If all input data is already available, execute Gather at prepare time */
+    if (tensor_has_data(i_data) && tensor_has_data(i_indices)) {
+        operator_status exec_status = ctx->executer(ctx);
+        if (exec_status != OP_OK) return exec_status;
+    }
+
     TRACE_EXIT(1);
     return OP_OK;
 }

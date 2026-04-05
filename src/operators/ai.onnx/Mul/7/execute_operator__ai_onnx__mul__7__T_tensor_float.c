@@ -8,15 +8,11 @@
 
 #define MUL_TYPED(TYPE, FIELD) \
     if (i_A->FIELD && i_B->FIELD && o_C->FIELD) { \
-        printf("Starting multiplication for type %s, total elements: %lld\n", #TYPE, bc.total); \
         int64_t ai_indices[TILE_SIZE]; \
         int64_t bi_indices[TILE_SIZE]; \
         for (int64_t tile_start = 0; tile_start < bc.total; tile_start += TILE_SIZE) { \
             int64_t tile_end = (tile_start + TILE_SIZE < bc.total) ? tile_start + TILE_SIZE : bc.total; \
             int64_t tile_size = tile_end - tile_start; \
-            if (tile_start % (TILE_SIZE * 16) == 0) { \
-                printf("Processing tile: %lld to %lld (size: %lld)\n", tile_start, tile_end, tile_size); \
-            } \
             for (int64_t i = 0; i < tile_size; i++) { \
                 broadcast_indices(&bc, tile_start + i, &ai_indices[i], &bi_indices[i]); \
             } \
@@ -24,13 +20,11 @@
                 o_C->FIELD[tile_start + i] = i_A->FIELD[ai_indices[i]] * i_B->FIELD[bi_indices[i]]; \
             } \
         } \
-        printf("Finished multiplication\n"); \
     }
 
 operator_status
 execute_operator__ai_onnx__mul__7__T_tensor_float(node_context *ctx)
 {
-    printf("1111: Entering mul operator\n");
     Onnx__TensorProto *i_A = searchInputByName(ctx, 0);
     if (!i_A || tensor_is_empty(i_A)) return OP_OK;
     Onnx__TensorProto *i_B = searchInputByName(ctx, 1);
@@ -38,25 +32,12 @@ execute_operator__ai_onnx__mul__7__T_tensor_float(node_context *ctx)
     if (!i_A || !i_B || !o_C) return OP_OK;
     /* Skip if output tensor is empty (has 0-dim) */
     if (tensor_is_empty(o_C)) return OP_OK;
-
-    printf("2222: Inputs valid, data_type=%d\n", i_A->data_type);
-    printf("Input A: n_dims=%ld", i_A->n_dims);
-    for (int j = 0; j < i_A->n_dims; j++) printf(" dims[%d]=%ld", j, i_A->dims[j]);
-    printf("\n");
-    printf("Input B: n_dims=%ld", i_B->n_dims);
-    for (int j = 0; j < i_B->n_dims; j++) printf(" dims[%d]=%ld", j, i_B->dims[j]);
-    printf("\n");
     
     broadcast_ctx bc;
     int bc_result = broadcast_init(&bc, i_A->n_dims, i_A->dims, i_B->n_dims, i_B->dims);
     if (bc_result != 0) {
         printf("ERROR: Broadcast init failed!\n");
         return OP_OK;
-    }
-    
-    printf("Broadcast context: n_dims=%ld, total=%lld\n", bc.n_dims, bc.total);
-    for (int j = 0; j < bc.n_dims; j++) {
-        printf("  dim[%d]: size=%ld, stride_a=%ld, stride_b=%ld\n", j, bc.dims[j], bc.strides_a[j], bc.strides_b[j]);
     }
 
     switch (i_A->data_type) {
@@ -66,6 +47,5 @@ execute_operator__ai_onnx__mul__7__T_tensor_float(node_context *ctx)
         case ONNX__TENSOR_PROTO__DATA_TYPE__DOUBLE: MUL_TYPED(double, double_data); break;
         default: MUL_TYPED(float, float_data); break;
     }
-    printf("3333: Exiting mul operator\n");
     return OP_OK;
 }

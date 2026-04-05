@@ -31,7 +31,7 @@ prepare_operator__ai_onnx__range__1(node_context *ctx)
 
     
     // Вычисляем размерность, если данные не пустые
-    if (!tensor_is_empty(i_start) && !tensor_is_empty(i_limit) && !tensor_is_empty(i_delta)) {
+    if (!tensor_has_data(i_start) && !tensor_has_data(i_limit) && !tensor_has_data(i_delta)) {
         printf("\nnot empty\n");
         int64_t n = 0;
         if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT) {

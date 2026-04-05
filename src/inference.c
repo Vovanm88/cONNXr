@@ -97,6 +97,17 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
     _current_node = nodeIdx;
     _current_op = model->graph->node[nodeIdx]->op_type;
 
+    size_t version = 23;
+    operator_preparer prepare = operator_set_find_preparer(model->graph->node[nodeIdx]->op_type, version);
+    if (!prepare) {
+        fprintf(stderr, "FATAL: No prepare for operator '%s' v%zu at node %d\n", model->graph->node[nodeIdx]->op_type, version, nodeIdx);
+        return 0;
+    }
+    operator_status prep_status = prepare(&all_context[nodeIdx]);
+    if (prep_status != OP_OK) {
+        fprintf(stderr, "WARNING: prepare returned %d for operator '%s' at node %d\n", prep_status, model->graph->node[nodeIdx]->op_type, nodeIdx);
+    }
+
     operator_status st = all_context[nodeIdx].executer(&all_context[nodeIdx]);
     if (st != OP_OK) {
         fprintf(stderr, "ERROR: node %d op=%s returned status %d\n", nodeIdx, model->graph->node[nodeIdx]->op_type, st);

@@ -29,7 +29,7 @@ prepare_operator__ai_onnx__transpose__1(
     size_t default_n_perm  = i_data->n_dims;
     int64_t default_perm[default_n_perm];
     for (int i = 0; i < i_data->n_dims; i++) {
-        default_perm[i] = i_data->dims[i_data->n_dims-i-1];
+        default_perm[i] = i_data->n_dims - i - 1;
     }
 
     context_operator__ai_onnx__transpose__1 *op_ctx = NULL;

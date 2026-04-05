@@ -61,8 +61,9 @@ ONNX_EXCLUDE=
 
 CC=gcc
 CFLAGS+=-std=c99
-CFLAGS+=-Wall
-CFLAGS+=-g3 -gdwarf -O2
+CFLAGS+=-Wall -ffast-math
+CFLAGS+=-g3 -O2
+
 
 VARIABLE+=CONNXR_SIMD
 HELP_CONNXR_SIMD=SIMD level: none, sse4, avx2 (default: none)

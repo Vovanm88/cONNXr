@@ -67,7 +67,7 @@ void resolve(Onnx__ModelProto *model,
     
     size_t version = 23;
     char *op_type = model->graph->node[nodeIdx]->op_type;
-    if (nodeIdx % 100 == 0) printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
+    printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
     operator_preparer prepare = operator_set_find_preparer(model->graph->node[nodeIdx]->op_type, version);
     
     if (!prepare) {
@@ -91,7 +91,7 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
   fflush(stdout);
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
-    if (nodeIdx % 1000 == 0) { printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout); }
+    printf("inference: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout);
     if (!all_context[nodeIdx].executer) { fprintf(stderr, "FATAL: node %d has NULL executer\n", nodeIdx); return 0; }
     _current_node = nodeIdx;
     _current_op = model->graph->node[nodeIdx]->op_type;
@@ -99,6 +99,24 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
     operator_status st = all_context[nodeIdx].executer(&all_context[nodeIdx]);
     if (st != OP_OK) {
         fprintf(stderr, "ERROR: node %d op=%s returned status %d\n", nodeIdx, model->graph->node[nodeIdx]->op_type, st);
+    }
+    
+    /* Print output dimensions */
+    for (int oi = 0; oi < model->graph->node[nodeIdx]->n_output; oi++) {
+        Onnx__TensorProto *out = all_context[nodeIdx].outputs[oi];
+        if (out) {
+            printf("  output[%d] '%s': n_dims=%zu", oi, out->name, out->n_dims);
+            printf(" | [");
+            if (out->n_dims>0){
+              for (size_t di = 0; di < out->n_dims; di++) {
+                  if(di+1<out->n_dims)
+                    printf("%ld, ", out->dims[di]);
+                  else
+                    printf("%ld", out->dims[di]);
+              }
+            }
+            printf("]\n");
+        }
     }
     /* Validate output dims aren't corrupted */
     for (int oi = 0; oi < model->graph->node[nodeIdx]->n_output; oi++) {

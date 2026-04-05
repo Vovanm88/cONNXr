@@ -21,8 +21,9 @@
 
 #ifdef CONNXR_USE_OMP
   #include <omp.h>
-  #define OMP_THRESHOLD 32768
+  
 #endif
+#define OMP_THRESHOLD 32768
 
 /* ---------- BLAS ---------- */
 
@@ -114,7 +115,8 @@ void matmul_float(const float *A, int64_t M, int64_t K,
 
     /* Tiled i-k-j loop */
 #ifdef CONNXR_USE_OMP
-    #pragma omp parallel for schedule(dynamic, 1) if(M * K * N > OMP_THRESHOLD)
+    int omp_enabled = (int)(M * K * N > OMP_THRESHOLD);
+    #pragma omp parallel for if (omp_enabled) schedule(dynamic, 1)
 #endif
     for (int64_t i0 = 0; i0 < M; i0 += M_TILE) {
         int64_t i_end = (i0 + M_TILE < M) ? i0 + M_TILE : M;
@@ -208,7 +210,8 @@ void matmul_double(const double *A, int64_t M, int64_t K,
     }
 
 #ifdef CONNXR_USE_OMP
-    #pragma omp parallel for schedule(dynamic, 1) if(M * K * N > OMP_THRESHOLD)
+    int omp_enabled = (int)(M * K * N > OMP_THRESHOLD);
+    #pragma omp parallel for if (omp_enabled) schedule(dynamic, 1)
 #endif
     for (int64_t i0 = 0; i0 < M; i0 += M_TILE) {
         int64_t i_end = (i0 + M_TILE < M) ? i0 + M_TILE : M;

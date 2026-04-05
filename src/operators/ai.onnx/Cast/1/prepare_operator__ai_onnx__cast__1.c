@@ -21,6 +21,10 @@ prepare_operator__ai_onnx__cast__1(node_context *ctx)
     /* Cast is special: we handle all type combos in one execute function */
     ctx->executer = (operator_executer)&execute_operator__ai_onnx__cast__1__T_tensor_float;
 
+    /* If input data is available, perform the cast during prepare */
+    operator_status exec_status = execute_operator__ai_onnx__cast__1__T_tensor_float(ctx);
+    if (exec_status != OP_OK) return exec_status;
+
     TRACE_EXIT(1);
     return OP_OK;
 }

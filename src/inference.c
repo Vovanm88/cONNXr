@@ -67,7 +67,8 @@ void resolve(Onnx__ModelProto *model,
     
     size_t version = 23;
     char *op_type = model->graph->node[nodeIdx]->op_type;
-    printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
+    if (nodeIdx % 100 ==0)
+      printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, op_type ? op_type : "NULL");
     operator_preparer prepare = operator_set_find_preparer(model->graph->node[nodeIdx]->op_type, version);
     
     if (!prepare) {

@@ -11,7 +11,7 @@
 #include "inference.h"
 #include "utils.h"
 
-#define MAX_INPUTS 100
+#define MAX_INPUTS 1000
 
 int main(int argc, char **argv){
 

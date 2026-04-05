@@ -34,16 +34,28 @@ prepare_operator__ai_onnx__range__1(node_context *ctx)
     // Вычисляем размерность, если данные не пустые
     if (tensor_has_data(i_start) && tensor_has_data(i_limit) && tensor_has_data(i_delta)) {
         printf("\nnot empty\n");
+        // print data types and values
+        printf("Data type: %d\n", i_start->data_type);
+
         int64_t n = 0;
         if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__FLOAT) {
             float s = i_start->float_data[0], l = i_limit->float_data[0], d = i_delta->float_data[0];
             n = (d != 0) ? (int64_t)ceilf((l - s) / d) : 0;
+            printf("Start value: %f\n", i_start->float_data[0]);
+            printf("Limit value: %f\n", i_limit->float_data[0]);
+            printf("Delta value: %f\n", i_delta->float_data[0]);
         } else if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__INT32) {
             int32_t s = i_start->int32_data[0], l = i_limit->int32_data[0], d = i_delta->int32_data[0];
             n = (d != 0) ? (int64_t)((l - s + d - (d > 0 ? 1 : -1)) / d) : 0;
+            printf("Start value: %d\n", i_start->int32_data[0]);
+            printf("Limit value: %d\n", i_limit->int32_data[0]);
+            printf("Delta value: %d\n", i_delta->int32_data[0]);
         } else if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__INT64) {
             int64_t s = i_start->int64_data[0], l = i_limit->int64_data[0], d = i_delta->int64_data[0];
             n = (d != 0) ? (l - s + d - (d > 0 ? 1 : -1)) / d : 0;
+            printf("Start value: %f\n", i_start->int64_data[0]);
+            printf("Limit value: %f\n", i_limit->int64_data[0]);
+            printf("Delta value: %f\n", i_delta->int64_data[0]);
         }else{
             printf("Unsupported data type for Range operator: %d\n", i_start->data_type);
         }

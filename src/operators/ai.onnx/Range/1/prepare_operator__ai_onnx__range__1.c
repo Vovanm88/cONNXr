@@ -4,6 +4,7 @@
 #include "utils.h"
 #include <math.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 operator_status
 prepare_operator__ai_onnx__range__1(node_context *ctx)
@@ -53,9 +54,9 @@ prepare_operator__ai_onnx__range__1(node_context *ctx)
         } else if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__INT64) {
             int64_t s = i_start->int64_data[0], l = i_limit->int64_data[0], d = i_delta->int64_data[0];
             n = (d != 0) ? (l - s + d - (d > 0 ? 1 : -1)) / d : 0;
-            printf("Start value: %f\n", i_start->int64_data[0]);
-            printf("Limit value: %f\n", i_limit->int64_data[0]);
-            printf("Delta value: %f\n", i_delta->int64_data[0]);
+            printf("Start value: %" PRId64 "\n", i_start->int64_data[0]);
+            printf("Limit value: %" PRId64 "\n", i_limit->int64_data[0]);
+            printf("Delta value: %" PRId64 "\n", i_delta->int64_data[0]);
         }else{
             printf("Unsupported data type for Range operator: %d\n", i_start->data_type);
         }

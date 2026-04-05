@@ -114,6 +114,7 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
     }
     
     /* Print output dimensions */
+    /*
     for (int oi = 0; oi < model->graph->node[nodeIdx]->n_output; oi++) {
         Onnx__TensorProto *out = all_context[nodeIdx].outputs[oi];
         if (out) {
@@ -130,6 +131,7 @@ Onnx__TensorProto** inference(Onnx__ModelProto *model, Onnx__TensorProto **input
             printf("]\n");
         }
     }
+    */
     /* Validate output dims aren't corrupted */
     for (int oi = 0; oi < model->graph->node[nodeIdx]->n_output; oi++) {
         Onnx__TensorProto *out = all_context[nodeIdx].outputs[oi];

@@ -34,7 +34,7 @@ void resolve(Onnx__ModelProto *model,
   for (int nodeIdx = 0; nodeIdx < model->graph->n_node; nodeIdx++)
   {
     all_context[nodeIdx].onnx_node = model->graph->node[nodeIdx];
-    if (nodeIdx % 100 == 0 || nodeIdx < 5) { printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout); }
+    //if (nodeIdx % 100 == 0 || nodeIdx < 5) { printf("resolve: node %d/%zu op=%s\n", nodeIdx, model->graph->n_node, model->graph->node[nodeIdx]->op_type); fflush(stdout); }
 
 
     // Search the inputs for a node

@@ -10,7 +10,8 @@ prepare_operator__ai_onnx__range__1(node_context *ctx)
 {
     TRACE_ENTRY(1);
     TRACE_NODE(2, true, ctx->onnx_node);
-
+    // print name of node
+    printf("Node name: %s\n", ctx->onnx_node->name);
     Onnx__TensorProto *i_start = searchInputByName(ctx, 0);
     Onnx__TensorProto *i_limit = searchInputByName(ctx, 1);
     Onnx__TensorProto *i_delta = searchInputByName(ctx, 2);
@@ -43,6 +44,8 @@ prepare_operator__ai_onnx__range__1(node_context *ctx)
         } else if (i_start->data_type == ONNX__TENSOR_PROTO__DATA_TYPE__INT64) {
             int64_t s = i_start->int64_data[0], l = i_limit->int64_data[0], d = i_delta->int64_data[0];
             n = (d != 0) ? (l - s + d - (d > 0 ? 1 : -1)) / d : 0;
+        }else{
+            printf("Unsupported data type for Range operator: %d\n", i_start->data_type);
         }
         if (n < 0) n = 0;
         o_output->dims[0] = n;
